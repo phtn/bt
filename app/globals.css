@@ -1,20 +1,35 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
-  --background: #ffffff;
+  --background: #f8f6f8;
   --foreground: #171717;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display);
+
+  /* Custom colors */
+  --color-primary: oklch(0.857 0.197 151.94);
+  --color-background-light: #f8f6f8;
+  --color-background-dark: oklch(0.1946 0.014 285.02);
+  --color-surface-dark: #18181b;
+  --color-surface-light: #ffffff;
+
+  /* Custom font family */
+  --font-family-display: var(--font-display), sans-serif;
+
+  /* Custom border radius */
+  --radius: 1rem;
+  --radius-lg: 2rem;
+  --radius-xl: 3rem;
+  --radius-full: 9999px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: oklch(0.1946 0.014 285.02);
     --foreground: #ededed;
   }
 }
@@ -22,5 +37,20 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-display), sans-serif;
+}
+
+/* Material Icons font variation settings */
+.material-symbols-outlined.filled {
+  font-variation-settings: 'FILL' 1;
+}
+
+/* Scrollbar hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
