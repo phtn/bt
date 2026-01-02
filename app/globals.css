@@ -1,5 +1,7 @@
 @import 'tailwindcss';
-
+::-webkit-scrollbar {
+  display: none;
+}
 @font-face {
   font-family: var('--font-polyslim');
   src: url('/fonts/PolySansTrial-Slim.otf') format('otf');

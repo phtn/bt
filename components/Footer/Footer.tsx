@@ -1,6 +1,7 @@
 'use client'
 
 import { Icon } from '@/lib/icons'
+import Link from 'next/link'
 
 export function Footer() {
   return (
@@ -48,9 +49,11 @@ export function Footer() {
             <a className='text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm' href='#'>
               Help Center
             </a>
-            <a className='text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm' href='#'>
-              Terms of Service
-            </a>
+            <Link
+              href='/terms-of-use'
+              className='text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm'>
+              Terms of Use
+            </Link>
             <a className='text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm' href='#'>
               Privacy Policy
             </a>
