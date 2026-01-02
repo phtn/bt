@@ -8,9 +8,7 @@ export const SUBDOMAIN_CONFIG = {
    * Available subdomains and their route mappings
    */
   subdomains: {
-    project: '/project',
-    commerce: '/commerce',
-    onramp: '/onramp'
+    project: '/project'
     // Add more subdomains as needed
   },
 
