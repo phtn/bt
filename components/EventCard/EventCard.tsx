@@ -35,8 +35,8 @@ export function EventCard({ title, location, date, imageUrl, imageAlt, badge }: 
           <div className='absolute bottom-3 left-3 right-3 flex justify-between items-end'>
             <span
               className={`${
-                badge.variant === 'primary' ? 'bg-primary' : 'bg-purple-600'
-              } text-white text-xs font-bold px-2 py-1 rounded-md`}>
+                badge.variant === 'primary' ? 'bg-primary' : 'bg-indigo-500'
+              } text-background text-xs font-bold px-2 py-1 rounded-md`}>
               {badge.text}
             </span>
           </div>

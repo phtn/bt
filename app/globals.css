@@ -1,5 +1,20 @@
 @import 'tailwindcss';
 
+@font-face {
+  font-family: var('--font-polyslim');
+  src: url('/fonts/PolySansTrial-Slim.otf') format('otf');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap; /* Prevents render-blocking */
+}
+@font-face {
+  font-family: var('--font-polysans');
+  src: url('/fonts/PolySansTrial-Neutral.otf') format('otf');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap; /* Prevents render-blocking */
+}
+
 :root {
   --background: #f8f6f8;
   --foreground: #171717;
@@ -9,6 +24,8 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-display: var(--font-display);
+  --font-polysans: var(--font-polysans);
+  --font-polyslim: var(--font-polyslim);
 
   /* Custom colors */
   --color-primary: oklch(0.857 0.197 151.94);

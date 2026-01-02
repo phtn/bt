@@ -43,9 +43,6 @@ export function Hero() {
           </div>
           <label className='flex flex-col w-full max-w-160 h-16 md:h-20 mt-6 relative z-10 shadow-2xl shadow-primary/20'>
             <div className='flex w-full flex-1 items-stretch rounded-full bg-surface-dark/80 backdrop-blur-xl border border-white/10 p-2 transition-all focus-within:ring-2 focus-within:ring-primary/50 focus-within:border-primary'>
-              <div className='text-[#c992c9] flex items-center justify-center pl-4 md:pl-6'>
-                <span className='material-symbols-outlined text-[24px] md:text-[28px]'>search</span>
-              </div>
               <input
                 type='text'
                 value={searchQuery}
@@ -57,7 +54,7 @@ export function Hero() {
               <button
                 onClick={handleSearch}
                 disabled={isPending}
-                className='flex min-w-25 md:min-w-35 cursor-pointer items-center justify-center rounded-full bg-primary hover:bg-primary/90 text-white text-sm md:text-base font-bold transition-all disabled:opacity-50'>
+                className='flex min-w-25 md:min-w-35 cursor-pointer items-center justify-center rounded-full bg-primary hover:bg-primary/90 text-background text-sm md:text-base font-bold transition-all disabled:opacity-50'>
                 Search
               </button>
             </div>
