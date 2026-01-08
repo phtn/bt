@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface GameResult {
   id: string
@@ -46,27 +46,50 @@ export default function GameResultsViewPage() {
 
     try {
       setLoading(true)
-      
+
       // Use ref to get latest results value without stale closure
       const currentResults = resultsRef.current
       const since = currentResults[currentResults.length - 1]?.timestamp || ''
-      const url = `/game-results?since=${since}`
-      
+      const url = `/api/results?since=${since}`
+
       const response = await fetch(url, { signal: abortController.signal })
-      
-      if (response.ok && !abortController.signal.aborted) {
-        const data = await response.json()
-        if (data.results && data.results.length > 0) {
-          // Merge with existing results, avoiding duplicates
-          setResults((prev) => {
-            const existingIds = new Set(prev.map((r) => r.id))
-            const newResults = data.results.filter(
-              (r: GameResult) => !existingIds.has(r.id)
-            )
-            const merged = [...prev, ...newResults]
-            localStorage.setItem('game-results', JSON.stringify(merged))
-            return merged
-          })
+
+      if (!abortController.signal.aborted) {
+        // Handle 204 No Content response
+        if (response.status === 204) {
+          console.warn('Received 204 No Content response from /api/results')
+          return
+        }
+
+        if (response.ok) {
+          const contentType = response.headers.get('content-type')
+          if (!contentType || !contentType.includes('application/json')) {
+            console.warn('Response is not JSON:', contentType)
+            return
+          }
+
+          const data = await response.json()
+          console.log('Fetched results:', { count: data.count, resultsLength: data.results?.length })
+          
+          if (data.results && Array.isArray(data.results)) {
+            if (data.results.length > 0) {
+              // Merge with existing results, avoiding duplicates
+              setResults((prev) => {
+                const existingIds = new Set(prev.map((r) => r.id))
+                const newResults = data.results.filter((r: GameResult) => !existingIds.has(r.id))
+                const merged = [...prev, ...newResults]
+                localStorage.setItem('game-results', JSON.stringify(merged))
+                return merged
+              })
+            } else {
+              console.log('No new results to add')
+            }
+          } else {
+            console.warn('Response data.results is not an array:', data)
+          }
+        } else {
+          const errorText = await response.text().catch(() => 'Unknown error')
+          console.error(`Failed to fetch results: ${response.status} ${response.statusText}`, errorText)
         }
       }
     } catch (error) {
@@ -109,16 +132,14 @@ export default function GameResultsViewPage() {
         <div className='mb-8 flex items-center justify-between'>
           <div>
             <h1 className='text-4xl font-bold mb-2'>Game Results</h1>
-            <p className='text-gray-600 dark:text-gray-400'>
-              View and accumulate game results
-            </p>
+            <p className='text-gray-600 dark:text-gray-400'>View and accumulate game results</p>
           </div>
           <div className='flex gap-4 items-center'>
             <button
               onClick={fetchLatestResults}
               disabled={loading}
-              className='px-4 py-2 bg-primary text-white rounded-lg font-medium hover:opacity-90 disabled:opacity-50 transition-opacity'>
-              {loading ? 'Refreshing...' : 'Refresh'}
+              className='px-4 py-2 bg-primary disabled:scale-50 disabled:opacity-20 transition-all duration-500 ease-in-out text-background rounded-lg font-medium hover:opacity-90'>
+              Refresh
             </button>
             <button
               onClick={clearResults}
@@ -151,9 +172,7 @@ export default function GameResultsViewPage() {
                     <p className='text-sm text-gray-500 dark:text-gray-400'>
                       {new Date(result.timestamp).toLocaleString()}
                     </p>
-                    <p className='text-xs text-gray-400 dark:text-gray-500 mt-1'>
-                      ID: {result.id}
-                    </p>
+                    <p className='text-xs text-gray-400 dark:text-gray-500 mt-1'>ID: {result.id}</p>
                   </div>
                 </div>
                 <pre className='p-4 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-auto text-sm font-mono max-h-96'>
@@ -167,4 +186,3 @@ export default function GameResultsViewPage() {
     </div>
   )
 }
-
