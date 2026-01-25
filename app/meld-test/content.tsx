@@ -1,110 +1,87 @@
 'use client'
 
-import { useState } from 'react'
-import { ConfigForm } from './components/ConfigForm'
-import { GenericEndpointForm } from './components/GenericEndpointForm'
-import { GetQuote } from './components/get-quote'
-import { HealthCheckForm } from './components/HealthCheckForm'
+import { useEffect, useState } from 'react'
+import { EndpointForm } from './components/EndpointForm'
+import { EndpointSelector } from './components/EndpointSelector'
+import { RequestTypesDisplay } from './components/RequestTypesDisplay'
 import { ResponseDisplay } from './components/shared/ResponseDisplay'
-import { TabNavigation } from './components/TabNavigation'
+import { getEndpointById, meldEndpoints } from './endpoints'
+import { useCountryDetection } from './hooks/useCountryDetection'
 import { useMeldApiCall } from './hooks/useMeldApiCall'
-import type { EndpointType, MeldEnvironment } from './types'
+import type { MeldEnvironment } from './types'
 
 export const MeldContent = () => {
-  const [activeTab, setActiveTab] = useState<EndpointType>('generic')
+  const [selectedEndpointId, setSelectedEndpointId] = useState<string>(meldEndpoints[0]?.id || 'health')
+  const [apiKey, setApiKey] = useState<string>('')
   const { loading, response, handleApiCall } = useMeldApiCall()
+  const { countryCode } = useCountryDetection()
 
-  // Handler for generic endpoint
-  const handleGenericSubmit = (
+  // Load API key from environment
+  useEffect(() => {
+    const loadApiKey = async () => {
+      try {
+        const res = await fetch('/api/meld/config')
+        if (res.ok) {
+          const data = await res.json()
+          if (data.apiKey) {
+            setApiKey(data.apiKey)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load API key:', error)
+      }
+    }
+    loadApiKey()
+  }, [])
+
+  const selectedEndpoint = getEndpointById(selectedEndpointId)
+
+  const handleSubmit = (
     endpoint: string,
     apiKey: string,
     environment: MeldEnvironment,
     method: 'GET' | 'POST' | 'PUT' | 'DELETE',
-    body?: string
+    body?: unknown,
+    params?: Record<string, string>
   ) => {
-    let parsedBody: unknown
-    if (body) {
-      try {
-        parsedBody = JSON.parse(body)
-      } catch (e) {
-        alert('Invalid JSON in request body')
-        console.log(e)
-        return
-      }
-    }
-    handleApiCall(endpoint, apiKey, environment, method, parsedBody)
-  }
-
-  // Handler for health check
-  const handleHealthCheckSubmit = (apiKey: string, environment: MeldEnvironment) => {
-    handleApiCall('/v1/health', apiKey, environment, 'GET')
-  }
-
-  // Handler for config
-  const handleConfigSubmit = (apiKey: string, environment: MeldEnvironment) => {
-    handleApiCall('/v1/config', apiKey, environment, 'GET')
-  }
-  // Handler for quote
-  const handleQuoteSubmit = async () => {
-    const response = await fetch('/api/meld', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    const data = await response.json()
-    console.log(data)
+    handleApiCall(endpoint, apiKey, environment, method, body, params)
   }
 
   return (
-    <div className='min-h-screen bg-background-light dark:bg-background-dark p-4 md:p-8'>
-      <div className='max-w-screen mx-auto'>
-        <div className='mb-8'>
-          <h1 className='text-2xl font-bold mb-2 space-x-2 tracking-tighter'>
-            <span>Meld</span> <span className='font-normal opacity-70'>api-tester</span>
-          </h1>
-        </div>
-
-        <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
-
-        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
-          {/* Forms */}
-          <div className='space-y-6'>
-            {activeTab === 'generic' && <GenericEndpointForm onSubmit={handleGenericSubmit} loading={loading} />}
-
-            {activeTab === 'health' && <HealthCheckForm onSubmit={handleHealthCheckSubmit} loading={loading} />}
-
-            {activeTab === 'config' && <ConfigForm onSubmit={handleConfigSubmit} loading={loading} />}
-            {activeTab === 'quote' && <GetQuote onSubmit={handleQuoteSubmit} />}
+    <div className='min-h-screen bg-zinc-50 dark:bg-zinc-950 p-4 md:p-0'>
+      <div className='w-full h-full'>
+        <div className='grid grid-cols-1 lg:grid-cols-12 gap-0'>
+          {/* Endpoint Selector */}
+          <div className='lg:col-span-2'>
+            <EndpointSelector selectedEndpoint={selectedEndpointId} onSelect={setSelectedEndpointId} />
           </div>
 
-          {/* Response Display */}
-          <div className='lg:col-span-2 space-y-6'>
-            <ResponseDisplay response={response} />
+          {/* Form with Request Types */}
+          <div className='lg:col-span-6'>
+            <div className='grid grid-cols-1 lg:grid-cols-2 gap-0'>
+              {/* Form */}
+              <div>
+                {selectedEndpoint && (
+                  <EndpointForm
+                    endpoint={selectedEndpoint}
+                    onSubmit={handleSubmit}
+                    loading={loading}
+                    apiKey={apiKey}
+                    countryCode={countryCode}
+                  />
+                )}
+              </div>
 
-            {/* Info Box */}
-            <div className='bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-6 rounded-lg'>
-              <h3 className='font-semibold mb-2'>📚 Documentation</h3>
-              <p className='text-sm text-gray-700 dark:text-gray-300 mb-2'>For detailed API documentation, visit:</p>
-              <a
-                href='https://docs.meld.io'
-                target='_blank'
-                rel='noopener noreferrer'
-                className='text-blue-600 dark:text-blue-400 hover:underline text-sm'>
-                Meld API Documentation →
-              </a>
-              <div className='mt-4 text-xs text-gray-600 dark:text-gray-400 space-y-1'>
-                <p>
-                  <strong>Sandbox:</strong> https://api-sb.meld.io
-                </p>
-                <p>
-                  <strong>Production:</strong> https://api.meld.io
-                </p>
-                <p>
-                  <strong>Authentication:</strong> BASIC {`{API_KEY}`} in Authorization header
-                </p>
+              {/* Request Types */}
+              <div>
+                <RequestTypesDisplay endpoint={selectedEndpoint} />
               </div>
             </div>
+          </div>
+
+          {/* Response */}
+          <div className='lg:col-span-4'>
+            <ResponseDisplay response={response} />
           </div>
         </div>
       </div>
