@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react'
 import type { MeldEventType, StoredWebhook } from './store'
+import { JsonViewer } from '../meld-test/components/shared/JsonViewer'
 
 interface WebhookResponse {
   count: number
@@ -190,11 +191,11 @@ export default function WebhooksMeldPage() {
         </div>
 
         {/* Stats and Filters */}
-        <div className='mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4'>
+        <div className='mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-8'>
           {/* Total Count */}
-          <div className='lg:col-span-2 p-4 bg-zinc-100 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg'>
-            <p className='text-xs text-zinc-600 dark:text-zinc-400 font-brk mb-1'>Total Webhooks</p>
-            <p className='text-2xl font-bold font-okxs'>{webhooks.length}</p>
+          <div className='lg:col-span-1 p-4 bg-zinc-100 dark:bg-zinc-900'>
+            <p className='text-xs text-zinc-600 dark:text-zinc-400 font-brk mb-1 text-center uppercase'>Total</p>
+            <p className='text-2xl text-center font-bold font-okxs'>{webhooks.length}</p>
           </div>
 
           {/* Event Type Filters */}
@@ -214,12 +215,12 @@ export default function WebhooksMeldPage() {
               <button
                 key={eventType}
                 onClick={() => handleEventTypeFilter(eventType)}
-                className={`p-4 border rounded-lg transition-all font-okxs text-sm ${
+                className={`p-4 transition-all font-okxs text-sm ${
                   selectedEventType === eventType
-                    ? 'bg-zinc-900 dark:bg-zinc-100 text-zinc-100 dark:text-zinc-900 border-zinc-900 dark:border-zinc-100'
-                    : 'bg-zinc-50 dark:bg-zinc-950 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 hover:border-zinc-400 dark:hover:border-zinc-600'
+                    ? 'bg-zinc-900 dark:bg-zinc-100 text-zinc-100 dark:text-zinc-900 '
+                    : 'bg-zinc-50 dark:bg-zinc-950  text-zinc-900 dark:text-zinc-100 hover:border-zinc-400 dark:hover:border-zinc-600'
                 }`}>
-                <div className='text-xs font-brk mb-1 opacity-70'>
+                <div className='text-xs font-brk mb-1 opacity-70 uppercase'>
                   {eventType === 'ALL' ? 'All' : EVENT_TYPE_LABELS[eventType as MeldEventType]}
                 </div>
                 <div className='text-xl font-bold'>{count}</div>
@@ -257,7 +258,7 @@ export default function WebhooksMeldPage() {
               return (
                 <div
                   key={webhook.id}
-                  className='bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-sm hover:shadow-md transition-shadow'>
+                  className='bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-sm hover:shadow-md transition-shadow'>
                   {/* Webhook Header */}
                   <div
                     className='p-6 cursor-pointer'
@@ -374,9 +375,7 @@ export default function WebhooksMeldPage() {
                           <h3 className='text-sm font-semibold mb-2 font-okxs text-zinc-900 dark:text-zinc-100'>
                             Full Payload
                           </h3>
-                          <pre className='p-4 bg-zinc-100 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 rounded-lg overflow-auto text-xs font-mono max-h-96 text-zinc-900 dark:text-zinc-100'>
-                            {JSON.stringify(webhook.event, null, 2)}
-                          </pre>
+                          <JsonViewer data={webhook.event} maxHeight='max-h-96' />
                         </div>
                       </div>
                     </div>

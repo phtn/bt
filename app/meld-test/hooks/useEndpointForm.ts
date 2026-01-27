@@ -287,8 +287,8 @@ export function useEndpointForm({
       'Meld-Version': '2025-03-04'
     }
 
-    // Combine params
-    const allParams = endpoint.method === 'GET' ? queryParams : { ...pathParams, ...queryParams }
+    // Combine params - include pathParams for all methods so they can be replaced in URL
+    const allParams = { ...pathParams, ...queryParams }
 
     return {
       url,
@@ -494,7 +494,8 @@ export function useEndpointForm({
       }
     }
 
-    const allParams = endpoint.method === 'GET' ? queryParams : { ...pathParams, ...queryParams }
+    // Include pathParams for all methods so they can be replaced in URL
+    const allParams = { ...pathParams, ...queryParams }
 
     return {
       body,

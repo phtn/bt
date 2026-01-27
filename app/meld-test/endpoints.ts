@@ -80,8 +80,8 @@ interface WebhookEndpointConfig extends BaseEndpointConfig {
 }
 
 // Endpoints without bodySchema
-interface HealthEndpointConfig extends BaseEndpointConfig {
-  id: 'health'
+interface CreateSubAccountEndpointConfig extends BaseEndpointConfig {
+  id: 'createSubAccount'
 }
 
 interface ConfigEndpointConfig extends BaseEndpointConfig {
@@ -110,7 +110,7 @@ export type EndpointConfig =
   | CreateWidgetSessionEndpointConfig
   | SessionQuoteEndpointConfig
   | WebhookEndpointConfig
-  | HealthEndpointConfig
+  | CreateSubAccountEndpointConfig
   | ConfigEndpointConfig
   | SessionStatusEndpointConfig
   | TransactionsEndpointConfig
@@ -136,12 +136,34 @@ export function hasBodySchema(
 
 export const meldEndpoints: EndpointConfig[] = [
   {
-    id: 'health',
-    name: 'Health Check',
+    id: 'createSubAccount',
+    name: 'Create Sub Account',
     method: 'GET',
-    path: '/v1/health',
-    description: 'Check the health status of the Meld API',
-    params: []
+    path: '/accounts/sub-accounts',
+    description: 'Create a new sub account',
+    params: [
+      {
+        name: 'name',
+        type: 'string',
+        required: true,
+        description: 'Name of the sub account',
+        examples: ['John Doe', 'Jane Smith']
+      },
+      {
+        name: 'serviceProvider',
+        type: 'string',
+        required: true,
+        description: 'Service provider of the sub account',
+        examples: ['BRALE', 'NOAH']
+      },
+      {
+        name: 'serviceProviderSubAccountId',
+        type: 'string',
+        required: true,
+        description: 'The subaccount ID provided from the service provider.',
+        examples: ['', '']
+      }
+    ]
   },
   {
     id: 'config',
@@ -350,7 +372,7 @@ export const meldEndpoints: EndpointConfig[] = [
     id: 'transactions',
     name: 'List Transactions',
     method: 'GET',
-    path: '/v1/transactions',
+    path: '/payments/transactions',
     description: 'List all transactions',
     params: [
       {
@@ -380,15 +402,15 @@ export const meldEndpoints: EndpointConfig[] = [
     id: 'transaction',
     name: 'Get Transaction',
     method: 'GET',
-    path: '/payments/transactions/{transactionId}',
+    path: '/payments/transactions/{id}',
     description: 'Get details of a specific transaction',
     params: [
       {
-        name: 'transactionId',
+        name: 'id',
         type: 'string',
         required: true,
         description: 'Transaction identifier',
-        examples: ['txn-001', 'tx-12345', 'transaction-abc', 'tx-xyz', 'txn-999']
+        examples: ['txn-001']
       }
     ]
   },

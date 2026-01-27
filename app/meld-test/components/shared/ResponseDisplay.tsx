@@ -1,6 +1,7 @@
 import { Method } from '@/components/ui/method'
 import { Title } from '@/components/ui/title'
 import type { ApiResponse, RequestPreview } from '../../types'
+import { JsonViewer } from './JsonViewer'
 
 interface ResponseDisplayProps {
   response: ApiResponse | null
@@ -99,11 +100,7 @@ export function ResponseDisplay({ response, requestPreview, responseWithURL }: R
           <label className='text-xs font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-wide mb-2 block'>
             Request Parameters
           </label>
-          <div className='p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800'>
-            <pre className='text-xs font-mono text-zinc-700 dark:text-zinc-300 overflow-auto'>
-              {JSON.stringify(displayParams, null, 2)}
-            </pre>
-          </div>
+          <JsonViewer data={displayParams} maxHeight='max-h-64' />
         </div>
       )}
 
@@ -112,11 +109,7 @@ export function ResponseDisplay({ response, requestPreview, responseWithURL }: R
           <label className='text-xs font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-wide mb-2 block'>
             Request Headers
           </label>
-          <div className='p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800'>
-            <pre className='text-xs font-mono text-zinc-700 dark:text-zinc-300 overflow-auto'>
-              {JSON.stringify(displayHeaders, null, 2)}
-            </pre>
-          </div>
+          <JsonViewer data={displayHeaders} maxHeight='max-h-64' />
         </div>
       )}
 
@@ -125,11 +118,7 @@ export function ResponseDisplay({ response, requestPreview, responseWithURL }: R
           <label className='text-xs font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-wide mb-2 block'>
             Request Body
           </label>
-          <div className='p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800'>
-            <pre className='text-xs font-mono text-zinc-700 dark:text-zinc-300 overflow-auto'>
-              {JSON.stringify(displayBody, null, 2)}
-            </pre>
-          </div>
+          <JsonViewer data={displayBody} maxHeight='max-h-64' />
         </div>
       )}
 
@@ -144,28 +133,12 @@ export function ResponseDisplay({ response, requestPreview, responseWithURL }: R
                 href={responseURL}
                 target='_blank'
                 rel='noopener noreferrer'
-                className='text-xs text-number dark:text-number'>
+                className='text-xs text-number dark:text-number hover:underline'>
                 Open Widget &rarr;
               </a>
             )}
           </div>
-          <div className='p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 max-h-96 overflow-auto'>
-            <pre className='text-xs font-mono text-zinc-700 dark:text-zinc-300'>
-              {
-                (() => {
-                  const data = response.data || response.error
-                  if (typeof data === 'string') {
-                    return data
-                  }
-                  try {
-                    return JSON.stringify(data, null, 2)
-                  } catch {
-                    return String(data)
-                  }
-                })() as string
-              }
-            </pre>
-          </div>
+          <JsonViewer data={response.data || response.error} maxHeight='max-h-96' />
         </div>
       )}
 

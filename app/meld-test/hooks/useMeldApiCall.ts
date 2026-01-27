@@ -35,18 +35,35 @@ export function useMeldApiCall() {
         const baseUrl = getBaseUrl(environment)
         let url = `${baseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`
 
-        // Add query parameters for GET requests
-        if (params && method === 'GET' && Object.keys(params).length > 0) {
-          const queryString = new URLSearchParams(params).toString()
+        // Separate path params from query params
+        const pathParams: Record<string, string> = {}
+        const queryParams: Record<string, string> = {}
+
+        if (params) {
+          Object.entries(params).forEach(([key, value]) => {
+            // Check if this is a path parameter (exists in the endpoint path)
+            if (endpoint.includes(`{${key}}`)) {
+              pathParams[key] = value
+            } else {
+              // It's a query parameter
+              queryParams[key] = value
+            }
+          })
+        }
+
+        // Replace path parameters first
+        Object.entries(pathParams).forEach(([key, value]) => {
+          url = url.replace(`{${key}}`, value)
+        })
+
+        // Add query parameters for GET requests after path replacement
+        if (method === 'GET' && Object.keys(queryParams).length > 0) {
+          const queryString = new URLSearchParams(queryParams).toString()
           url = `${url}?${queryString}`
         }
 
-        // Replace path parameters
-        if (params) {
-          Object.entries(params).forEach(([key, value]) => {
-            url = url.replace(`{${key}}`, value)
-          })
-        }
+        // Combine all params for response display (path + query)
+        const allParams = { ...pathParams, ...queryParams }
 
         const headers: HeadersInit = {
           Authorization: `BASIC ${apiKey}`,
@@ -92,15 +109,24 @@ export function useMeldApiCall() {
               'Meld-Version': '2025-03-04'
             },
             body: body || undefined,
-            params: params || undefined
+            params: Object.keys(allParams).length > 0 ? allParams : params || undefined
           })
         }
       } catch (error) {
         if (error instanceof Error && error.name !== 'AbortError' && !abortController.signal.aborted) {
+          // Build error URL with path params replaced
+          let errorUrl = `${getBaseUrl(environment)}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`
+          if (params) {
+            Object.entries(params).forEach(([key, value]) => {
+              if (endpoint.includes(`{${key}}`)) {
+                errorUrl = errorUrl.replace(`{${key}}`, value)
+              }
+            })
+          }
           setResponse({
             success: false,
             error: error.message,
-            url: `${getBaseUrl(environment)}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`,
+            url: errorUrl,
             method,
             params: params || undefined
           })
