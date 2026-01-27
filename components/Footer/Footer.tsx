@@ -54,9 +54,11 @@ export function Footer() {
               className='text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm'>
               Terms of Use
             </Link>
-            <a className='text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm' href='#'>
+            <Link
+              className='text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm'
+              href='/privacy-policy'>
               Privacy Policy
-            </a>
+            </Link>
             <a className='text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm' href='#'>
               Refunds
             </a>

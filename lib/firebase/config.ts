@@ -1,0 +1,34 @@
+// Import the functions you need from the SDKs you need
+import { initializeApp } from 'firebase/app'
+import { Auth, getAuth } from 'firebase/auth'
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+}
+
+// Validate required Firebase config in development
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  const requiredFields = ['apiKey', 'authDomain', 'projectId', 'appId'] as const
+  const missingFields = requiredFields.filter(
+    (field) => !firebaseConfig[field]
+  )
+  if (missingFields.length > 0) {
+    console.warn(
+      `Firebase config missing required fields: ${missingFields.join(', ')}`
+    )
+  }
+}
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig)
+export const auth: Auth = getAuth(app)
