@@ -1,65 +1,93 @@
+'use client'
+
 import { Tabs } from '@base-ui/react/tabs'
+import type { ReactNode } from 'react'
 import { MeldContent } from '../meld-test/content'
 import { PayGateContent } from '../paygate-test/content'
+import { useProjectContext, type ProjectTab } from './context'
+
+const TAB_CLASS_NAME =
+  'flex h-8 items-center justify-center border-0 px-2 text-sm font-okxs font-medium break-keep whitespace-nowrap text-zinc-400 hover:text-zinc-300 outline-none select-none before:inset-x-0 before:inset-y-1 before:rounded-sm before:-outline-offset-1 before:outline-blue-800 focus-visible:relative focus-visible:before:absolute focus-visible:before:outline-2 data-active:text-zinc-900'
+
+const DEFAULT_PANEL_CLASS_NAME =
+  'relative flex h-fit items-center -outline-offset-1 outline-blue-800 focus-visible:rounded-md focus-visible:outline-2'
+
+type TabConfig = {
+  value: ProjectTab
+  label: string
+  panelClassName?: string
+  content: ReactNode
+}
+
+const getTabsConfig = (): TabConfig[] => [
+  {
+    value: 'overview',
+    label: 'overview',
+    panelClassName:
+      'relative flex h-32 items-center justify-center -outline-offset-1 outline-blue-800 focus-visible:rounded-md focus-visible:outline-2',
+    content: <OverviewIcon className='size-10 text-zinc-300' />
+  },
+  {
+    value: 'gate',
+    label: 'paygate',
+    content: <PayGateContent />
+  },
+  {
+    value: 'meld',
+    label: 'meld',
+    content: <MeldContent />
+  },
+  {
+    value: 'swapped',
+    label: 'swapped',
+    panelClassName:
+      'relative flex p-6 h-fit items-center -outline-offset-1 outline-blue-800 focus-visible:rounded-md focus-visible:outline-2',
+    content: (
+      <a href='https://and-cash.vercel.app' target='_blank' rel='noopener noreferrer'>
+        swapped api tester &rarr;
+      </a>
+    )
+  },
+  {
+    value: 'moonpay',
+    label: 'moonpay',
+    panelClassName:
+      'relative flex p-6 h-fit items-center -outline-offset-1 outline-blue-800 focus-visible:rounded-md focus-visible:outline-2',
+    content: 'Setting up...'
+  }
+]
 
 export const ProjectTabs = () => {
+  const context = useProjectContext()
+  if (!context) {
+    throw new Error('ProjectTabs must be used within ProjectProvider')
+  }
+  const { tab, setTab } = context
+
+  const handleValueChange = (value: string) => {
+    setTab(value as ProjectTab)
+  }
+
+  const tabs = getTabsConfig()
+
   return (
-    <Tabs.Root className='rounded-md border border-zinc-600' defaultValue='overview'>
-      <Tabs.List className='relative z-0 flex gap-1 px-1 shadow-[inset_0_-1px] shadow-zinc-600'>
-        <Tabs.Tab
-          className='flex h-8 items-center justify-center border-0 px-2 text-sm font-medium break-keep whitespace-nowrap text-zinc-400 hover:text-zinc-300 outline-none select-none before:inset-x-0 before:inset-y-1 before:rounded-sm before:-outline-offset-1 before:outline-blue-800 focus-visible:relative focus-visible:before:absolute focus-visible:before:outline-2 data-active:text-zinc-900'
-          value='overview'>
-          overview
-        </Tabs.Tab>
-        <Tabs.Tab
-          className='flex h-8 items-center justify-center border-0 px-2 text-sm font-medium break-keep whitespace-nowrap text-zinc-400 hover:text-zinc-300 outline-none select-none before:inset-x-0 before:inset-y-1 before:rounded-sm before:-outline-offset-1 before:outline-blue-800 focus-visible:relative focus-visible:before:absolute focus-visible:before:outline-2 data-active:text-zinc-900'
-          value='gate'>
-          paygate
-        </Tabs.Tab>
-        <Tabs.Tab
-          className='flex h-8 items-center justify-center border-0 px-2 text-sm font-medium break-keep whitespace-nowrap text-zinc-400 hover:text-zinc-300 outline-none select-none before:inset-x-0 before:inset-y-1 before:rounded-sm before:-outline-offset-1 before:outline-blue-800 focus-visible:relative focus-visible:before:absolute focus-visible:before:outline-2 data-active:text-zinc-900'
-          value='meld'>
-          meld
-        </Tabs.Tab>
-        <Tabs.Tab
-          className='flex h-8 items-center justify-center border-0 px-2 text-sm font-medium break-keep whitespace-nowrap text-zinc-400 hover:text-zinc-300 outline-none select-none before:inset-x-0 before:inset-y-1 before:rounded-sm before:-outline-offset-1 before:outline-blue-800 focus-visible:relative focus-visible:before:absolute focus-visible:before:outline-2 data-active:text-zinc-900'
-          value='swapped'>
-          swapped
-        </Tabs.Tab>
-        <Tabs.Tab
-          className='flex h-8 items-center justify-center border-0 px-2 text-sm font-medium break-keep whitespace-nowrap text-zinc-400 hover:text-zinc-300 outline-none select-none before:inset-x-0 before:inset-y-1 before:rounded-sm before:-outline-offset-1 before:outline-blue-800 focus-visible:relative focus-visible:before:absolute focus-visible:before:outline-2 data-active:text-zinc-900'
-          value='moonpay'>
-          moonpay
-        </Tabs.Tab>
+    <Tabs.Root className='rounded-md' value={tab} onValueChange={handleValueChange}>
+      <Tabs.List className='relative z-0 flex gap-1 px-1 mb-4'>
+        {tabs.map((tabConfig) => (
+          <Tabs.Tab key={tabConfig.value} className={TAB_CLASS_NAME} value={tabConfig.value}>
+            {tabConfig.label}
+          </Tabs.Tab>
+        ))}
         <Tabs.Indicator className='absolute top-1/2 left-0 z-[-1] h-6 w-(--active-tab-width) translate-x-(--active-tab-left) -translate-y-1/2 rounded-sm bg-zinc-100 transition-all duration-200 ease-in-out' />
       </Tabs.List>
-      <Tabs.Panel
-        className='relative flex h-32 items-center justify-center -outline-offset-1 outline-blue-800 focus-visible:rounded-md focus-visible:outline-2'
-        value='overview'>
-        <OverviewIcon className='size-10 text-zinc-300' />
-      </Tabs.Panel>
-      <Tabs.Panel
-        className='relative flex h-fit items-center -outline-offset-1 outline-blue-800 focus-visible:rounded-md focus-visible:outline-2'
-        value='gate'>
-        <PayGateContent />
-      </Tabs.Panel>
-      <Tabs.Panel
-        className='relative flex h-fit items-center -outline-offset-1 outline-blue-800 focus-visible:rounded-md focus-visible:outline-2'
-        value='meld'>
-        <MeldContent />
-      </Tabs.Panel>
-      <Tabs.Panel
-        className='relative flex p-6 h-fit items-center -outline-offset-1 outline-blue-800 focus-visible:rounded-md focus-visible:outline-2'
-        value='swapped'>
-        <a href='https://and-cash.vercel.app' target='_blank' rel='noopener noreferrer'>
-          swapped api tester &rarr;
-        </a>
-      </Tabs.Panel>
-      <Tabs.Panel
-        className='relative flex p-6 h-fit items-center -outline-offset-1 outline-blue-800 focus-visible:rounded-md focus-visible:outline-2'
-        value='moonpay'>
-        Setting up...
-      </Tabs.Panel>
+      {tabs.map((tabConfig) => (
+        <Tabs.Panel
+          key={tabConfig.value}
+          className={tabConfig.panelClassName ?? DEFAULT_PANEL_CLASS_NAME}
+          value={tabConfig.value}>
+          {tabConfig.content}
+        </Tabs.Panel>
+      ))}
     </Tabs.Root>
   )
 }

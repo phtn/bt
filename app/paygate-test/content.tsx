@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useProjectContext } from '../project/context'
 import { AffiliateForm } from './components/AffiliateForm'
 import { CallbackSimulator } from './components/CallbackSimulator'
 import { CreatePaymentForm } from './components/CreatePaymentForm'
@@ -17,9 +18,26 @@ import type { EndpointType } from './types'
 import { decodeAddressIfNeeded } from './utils/addressEncoding'
 
 export const PayGateContent = () => {
-  const [activeTab, setActiveTab] = useState<EndpointType>('wallet')
+  const projectContext = useProjectContext()
+  const contextPaygateTab = projectContext?.paygateTab || null
+  const [activeTab, setActiveTab] = useState<EndpointType>(
+    (contextPaygateTab as EndpointType) || 'wallet'
+  )
   const { providers, loading: loadingProviders } = useProviders()
   const { loading, response, handleApiCall } = useApiCall()
+
+  // Sync with context when it changes
+  useEffect(() => {
+    if (contextPaygateTab) {
+      setActiveTab(contextPaygateTab as EndpointType)
+    }
+  }, [contextPaygateTab])
+
+  // Update context when tab changes
+  const handleTabChange = (tab: EndpointType) => {
+    setActiveTab(tab)
+    projectContext?.setPaygateTab(tab)
+  }
 
   // Handlers for each form
   const handleWalletSubmit = (address: string, callback: string) => {
@@ -130,7 +148,7 @@ export const PayGateContent = () => {
           <p className='text-gray-600 dark:text-gray-400'>Test-stand for PayGate api endpoints</p>
         </div>
 
-        <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+        <TabNavigation activeTab={activeTab} onTabChange={handleTabChange} />
 
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
           {/* Forms */}

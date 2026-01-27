@@ -16,7 +16,24 @@
   font-style: normal;
   font-display: swap; /* Prevents render-blocking */
 }
-
+@font-face {
+  font-family: 'BrkMono';
+  src: url('/fonts/BerkeleyMono.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Okxs';
+  src: url('/fonts/okxs-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Okxs';
+  src: url('/fonts/okxs-medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+}
 :root {
   --background: #f8f6f8;
   --foreground: #171717;
@@ -28,6 +45,8 @@
   --font-display: var(--font-display);
   --font-polysans: var(--font-polysans);
   --font-polyslim: var(--font-polyslim);
+  --font-brk: 'BrkMono', Menlo, monospace;
+  --font-okxs: 'Okxs', Helvetica, sans-serif;
 
   /* Custom colors */
   --color-primary: oklch(0.857 0.197 151.94);
@@ -35,6 +54,12 @@
   --color-background-dark: oklch(0.1946 0.014 285.02);
   --color-surface-dark: #18181b;
   --color-surface-light: #ffffff;
+  --color-get: oklch(0.8135 0.1505 150.12);
+  --color-post: oklch(0.8735 0.159 110.07);
+  --color-put: oklch(0.7942 0.1444 62.26);
+  --color-string: oklch(0.7942 0.1444 62.26);
+  --color-number: oklch(0.7942 0.1258 222.88);
+  --color-boolean: oklch(0.7942 0.1061 299.12);
 
   /* Custom font family */
   --font-family-display: var(--font-display), sans-serif;

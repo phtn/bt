@@ -6,14 +6,132 @@ export interface EndpointParam {
   examples: string[]
 }
 
-export interface EndpointConfig {
+// Body Schema Interfaces for each endpoint
+export interface QuoteBodySchema {
+  countryCode: string
+  sourceCurrencyCode: string
+  destinationCurrencyCode: string
+  paymentMethodType: string
+  sourceAmount?: number
+}
+
+export interface CreateWidgetSessionBodySchema {
+  sessionType: string
+  sessionData: {
+    countryCode: string
+    destinationCurrencyCode: string
+    serviceProvider: string
+    sourceAmount: string
+    sourceCurrencyCode: string
+    walletAddress: string
+    externalCustomerId?: string
+    externalSessionId?: string
+  }
+}
+
+export interface SessionQuoteBodySchema {
+  sessionId: string
+  sourceAmount?: number
+  destinationAmount?: number
+}
+
+export interface WebhookBodySchema {
+  url: string
+  events: string[]
+}
+
+// Union type for all body schemas
+export type EndpointBodySchema =
+  | QuoteBodySchema
+  | CreateWidgetSessionBodySchema
+  | SessionQuoteBodySchema
+  | WebhookBodySchema
+
+// Base endpoint config without bodySchema
+interface BaseEndpointConfig {
   id: string
   name: string
   method: 'GET' | 'POST' | 'PUT' | 'DELETE'
   path: string
   description: string
   params?: EndpointParam[]
-  bodySchema?: Record<string, unknown>
+  responseWithURL?: string
+}
+
+// Specific endpoint configs with typed bodySchema
+interface QuoteEndpointConfig extends BaseEndpointConfig {
+  id: 'quote'
+  bodySchema: QuoteBodySchema
+}
+
+interface CreateWidgetSessionEndpointConfig extends BaseEndpointConfig {
+  id: 'createWidgetSession'
+  bodySchema: CreateWidgetSessionBodySchema
+}
+
+interface SessionQuoteEndpointConfig extends BaseEndpointConfig {
+  id: 'session-quote'
+  bodySchema: SessionQuoteBodySchema
+}
+
+interface WebhookEndpointConfig extends BaseEndpointConfig {
+  id: 'webhook'
+  bodySchema: WebhookBodySchema
+}
+
+// Endpoints without bodySchema
+interface HealthEndpointConfig extends BaseEndpointConfig {
+  id: 'health'
+}
+
+interface ConfigEndpointConfig extends BaseEndpointConfig {
+  id: 'config'
+}
+
+interface SessionStatusEndpointConfig extends BaseEndpointConfig {
+  id: 'session-status'
+}
+
+interface TransactionsEndpointConfig extends BaseEndpointConfig {
+  id: 'transactions'
+}
+
+interface TransactionEndpointConfig extends BaseEndpointConfig {
+  id: 'transaction'
+}
+
+interface WebhooksEndpointConfig extends BaseEndpointConfig {
+  id: 'webhooks'
+}
+
+// Union type for all endpoint configs
+export type EndpointConfig =
+  | QuoteEndpointConfig
+  | CreateWidgetSessionEndpointConfig
+  | SessionQuoteEndpointConfig
+  | WebhookEndpointConfig
+  | HealthEndpointConfig
+  | ConfigEndpointConfig
+  | SessionStatusEndpointConfig
+  | TransactionsEndpointConfig
+  | TransactionEndpointConfig
+  | WebhooksEndpointConfig
+
+// Type helper to extract body schema type from endpoint config
+export type EndpointBodySchemaType<T extends EndpointConfig> = T extends { bodySchema: infer B } ? B : never
+
+// Type helper to get body schema keys
+export type BodySchemaKeys<T extends EndpointConfig> = T extends { bodySchema: infer B }
+  ? B extends Record<string, unknown>
+    ? keyof B
+    : never
+  : never
+
+// Type guard to check if endpoint has bodySchema
+export function hasBodySchema(
+  endpoint: EndpointConfig
+): endpoint is EndpointConfig & { bodySchema: EndpointBodySchema } {
+  return 'bodySchema' in endpoint && endpoint.bodySchema !== undefined
 }
 
 export const meldEndpoints: EndpointConfig[] = [
@@ -35,7 +153,7 @@ export const meldEndpoints: EndpointConfig[] = [
   },
   {
     id: 'quote',
-    name: 'Get Crypto Quote',
+    name: 'Buy Crypto Quote',
     method: 'POST',
     path: '/payments/crypto/quote',
     description: 'Get a quote for buying cryptocurrency',
@@ -51,79 +169,131 @@ export const meldEndpoints: EndpointConfig[] = [
         name: 'sourceCurrencyCode',
         type: 'string',
         required: true,
-        description: 'Source currency code (e.g., USD, EUR)',
-        examples: ['USD', 'EUR', 'GBP', 'JPY', 'CAD']
-      },
-      {
-        name: 'destinationCurrencyCode',
-        type: 'string',
-        required: true,
-        description: 'Destination cryptocurrency code (e.g., USDC, ETH)',
-        examples: ['USDC', 'ETH', 'BTC', 'USDT', 'MATIC']
-      },
-      {
-        name: 'sourceAmount',
-        type: 'number',
-        required: false,
-        description: 'Source amount to convert',
-        examples: ['100', '500', '1000', '2500', '5000']
-      },
-      {
-        name: 'destinationAmount',
-        type: 'number',
-        required: false,
-        description: 'Destination amount to receive',
-        examples: ['100', '500', '1000', '2500', '5000']
-      }
-    ],
-    bodySchema: {
-      countryCode: 'string',
-      sourceCurrencyCode: 'string',
-      destinationCurrencyCode: 'string',
-      sourceAmount: 'number (optional)',
-      destinationAmount: 'number (optional)'
-    }
-  },
-  {
-    id: 'session',
-    name: 'Create Session',
-    method: 'POST',
-    path: '/v1/session',
-    description: 'Create a new session for a transaction',
-    params: [
-      {
-        name: 'externalCustomerId',
-        type: 'string',
-        required: true,
-        description: 'External customer identifier',
-        examples: ['customer-001', 'user-12345', 'client-abc', 'user-xyz', 'customer-999']
-      },
-      {
-        name: 'walletAddress',
-        type: 'string',
-        required: true,
-        description: 'Destination wallet address',
-        examples: [
-          '0x72C378b08A43b7965EB8A8ec8E662eE41C87e5e2',
-          '0xF977814e90dA44bFA03b6295A0616a897441aceC',
-          '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
-          '0x8ba1f109551bD432803012645Hac136c22C1779',
-          '0x1234567890123456789012345678901234567890'
-        ]
+        description: 'Currency code (e.g., USD, EUR)',
+        examples: ['USD', 'EUR', 'JPY', 'PHP']
       },
       {
         name: 'destinationCurrencyCode',
         type: 'string',
         required: true,
         description: 'Destination cryptocurrency code',
-        examples: ['USDC', 'ETH', 'BTC', 'USDT', 'MATIC']
+        examples: ['USDC', 'ETH', 'BTC', 'USDT']
+      },
+      {
+        name: 'sourceAmount',
+        type: 'number',
+        required: false,
+        description: 'Source amount to convert',
+        examples: ['100', '500', '1000', '2500']
+      },
+      {
+        name: 'paymentMethodType',
+        type: 'string',
+        required: true,
+        description: 'Payment method type (e.g., CREDIT_DEBIT_CARD)',
+        examples: ['CREDIT_DEBIT_CARD']
       }
     ],
     bodySchema: {
-      externalCustomerId: 'string',
-      walletAddress: 'string',
-      destinationCurrencyCode: 'string'
-    }
+      countryCode: '',
+      sourceCurrencyCode: '',
+      destinationCurrencyCode: '',
+      paymentMethodType: '',
+      sourceAmount: undefined
+    } satisfies QuoteBodySchema
+  },
+  {
+    id: 'createWidgetSession',
+    name: 'Create Widget Session',
+    method: 'POST',
+    path: '/crypto/session/widget',
+    description: 'Create a new session for a transaction',
+    params: [
+      {
+        name: 'sessionType',
+        required: true,
+        description: 'Session type',
+        type: 'string',
+        examples: ['BUY', 'SELL', 'TRANSFER']
+      },
+      {
+        name: 'countryCode',
+        type: 'string',
+        required: true,
+        description: 'Country code (auto-detected)',
+        examples: ['US', 'GB', 'CA', 'AU', 'PH']
+      },
+      {
+        name: 'sourceCurrencyCode',
+        type: 'string',
+        required: true,
+        description: 'Currency code (e.g., USD, EUR)',
+        examples: ['USD', 'EUR', 'JPY', 'PHP']
+      },
+      {
+        name: 'destinationCurrencyCode',
+        type: 'string',
+        required: true,
+        description: 'Destination cryptocurrency code',
+        examples: ['USDC', 'ETH', 'BTC', 'USDT']
+      },
+      {
+        name: 'sourceAmount',
+        type: 'number',
+        required: true,
+        description: 'Source amount to convert',
+        examples: ['100', '500', '1000', '2500']
+      },
+      {
+        name: 'paymentMethodType',
+        type: 'string',
+        required: true,
+        description: 'Payment method type (e.g., CREDIT_DEBIT_CARD)',
+        examples: ['CREDIT_DEBIT_CARD']
+      },
+      {
+        name: 'serviceProvider',
+        type: 'string',
+        required: true,
+        description: 'Service provider name',
+        examples: ['TRANSAK', 'KRYPTONIM', 'SWAPPED']
+      },
+      {
+        name: 'walletAddress',
+        type: 'string',
+        required: true,
+        description: 'Destination wallet address',
+        examples: [String(process.env.NEXT_PUBLIC_BITCOIN_ADDRESS)]
+      },
+      {
+        name: 'externalCustomerId',
+        type: 'string',
+        required: false,
+        description: 'Customer ID',
+        examples: ['testCustomer', 'T02', 'T03']
+      },
+      {
+        name: 'externalSessionId',
+        type: 'string',
+        required: false,
+        description: 'Session ID',
+        examples: ['testSession', 'S02', 'S03']
+      }
+    ],
+    responseWithURL: 'widgetUrl',
+    bodySchema: {
+      sessionType: '',
+      sessionData: {
+        countryCode: '',
+        destinationCurrencyCode: '',
+        serviceProvider: '',
+        sourceAmount: '',
+        sourceCurrencyCode: '',
+        walletAddress: '',
+        externalCustomerId: undefined,
+        externalSessionId: undefined
+      }
+    } satisfies CreateWidgetSessionBodySchema
   },
   {
     id: 'session-quote',
@@ -155,10 +325,10 @@ export const meldEndpoints: EndpointConfig[] = [
       }
     ],
     bodySchema: {
-      sessionId: 'string',
-      sourceAmount: 'number (optional)',
-      destinationAmount: 'number (optional)'
-    }
+      sessionId: '',
+      sourceAmount: undefined,
+      destinationAmount: undefined
+    } satisfies SessionQuoteBodySchema
   },
   {
     id: 'session-status',
@@ -265,9 +435,9 @@ export const meldEndpoints: EndpointConfig[] = [
       }
     ],
     bodySchema: {
-      url: 'string',
-      events: 'array<string>'
-    }
+      url: '',
+      events: []
+    } satisfies WebhookBodySchema
   }
 ]
 

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import type { ApiResponse, MeldEnvironment } from '../types'
 
 export function useMeldApiCall() {
@@ -88,7 +88,8 @@ export function useMeldApiCall() {
             headers: {
               Authorization: `BASIC ${apiKey.substring(0, 10)}...`,
               Accept: 'application/json',
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'Meld-Version': '2025-03-04'
             },
             body: body || undefined,
             params: params || undefined
@@ -115,4 +116,3 @@ export function useMeldApiCall() {
 
   return { loading, response, handleApiCall }
 }
-

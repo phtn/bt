@@ -46,7 +46,9 @@ export function Header() {
           className='hidden sm:flex text-slate-900 dark:text-white hover:bg-white/5 size-10 items-center justify-center rounded-full transition-colors'
           aria-label='Search'></button>
         <Link
-          href={'/project'}
+          href={
+            process.env.NODE_ENV === 'production' ? 'https://project.bigticket.ph' : 'http://project.localhost:3000'
+          }
           className='flex min-w-21 cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-6 transition-all text-white text-sm font-bold leading-normal tracking-wide disabled:opacity-50'>
           <span className='truncate flex items-center gap-2'>Connect</span>
         </Link>

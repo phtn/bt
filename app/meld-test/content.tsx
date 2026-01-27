@@ -1,20 +1,38 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useProjectContext } from '../project/context'
 import { EndpointForm } from './components/EndpointForm'
 import { EndpointSelector } from './components/EndpointSelector'
-import { RequestTypesDisplay } from './components/RequestTypesDisplay'
+import { RequestTypes } from './components/RequestTypes'
 import { ResponseDisplay } from './components/shared/ResponseDisplay'
 import { getEndpointById, meldEndpoints } from './endpoints'
 import { useCountryDetection } from './hooks/useCountryDetection'
 import { useMeldApiCall } from './hooks/useMeldApiCall'
-import type { MeldEnvironment } from './types'
+import type { MeldEnvironment, RequestPreview } from './types'
 
 export const MeldContent = () => {
-  const [selectedEndpointId, setSelectedEndpointId] = useState<string>(meldEndpoints[0]?.id || 'health')
+  const projectContext = useProjectContext()
+  const defaultEndpointId = meldEndpoints[0]?.id || 'health'
+  const contextEndpointId = projectContext?.meldEndpointId || null
+  const [selectedEndpointId, setSelectedEndpointId] = useState<string>(contextEndpointId || defaultEndpointId)
   const [apiKey, setApiKey] = useState<string>('')
+  const [requestPreview, setRequestPreview] = useState<RequestPreview | null>(null)
   const { loading, response, handleApiCall } = useMeldApiCall()
   const { countryCode } = useCountryDetection()
+
+  // Sync with context when it changes
+  // useEffect(() => {
+  //   if (contextEndpointId) {
+  //     setSelectedEndpointId(contextEndpointId)
+  //   }
+  // }, [contextEndpointId])
+
+  // Update context when endpoint changes
+  const handleEndpointChange = (id: string) => {
+    setSelectedEndpointId(id)
+    projectContext?.setMeldEndpointId(id)
+  }
 
   // Load API key from environment
   useEffect(() => {
@@ -47,41 +65,60 @@ export const MeldContent = () => {
     handleApiCall(endpoint, apiKey, environment, method, body, params)
   }
 
+  const handleRequestChange = (
+    url: string,
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+    headers: Record<string, string>,
+    body?: unknown,
+    params?: Record<string, string>
+  ) => {
+    setRequestPreview({
+      url,
+      method,
+      headers,
+      body,
+      params
+    })
+  }
+
   return (
-    <div className='min-h-screen bg-zinc-50 dark:bg-zinc-950 p-4 md:p-0'>
+    <div className='min-h-screen bg-zinc-50 dark:bg-black p-4 md:p-0'>
       <div className='w-full h-full'>
         <div className='grid grid-cols-1 lg:grid-cols-12 gap-0'>
           {/* Endpoint Selector */}
           <div className='lg:col-span-2'>
-            <EndpointSelector selectedEndpoint={selectedEndpointId} onSelect={setSelectedEndpointId} />
+            <EndpointSelector selectedEndpoint={selectedEndpointId} onSelect={handleEndpointChange} />
           </div>
 
           {/* Form with Request Types */}
           <div className='lg:col-span-6'>
-            <div className='grid grid-cols-1 lg:grid-cols-2 gap-0'>
+            <div className='grid grid-cols-1 lg:grid-cols-5 gap-0'>
               {/* Form */}
-              <div>
+              <div className='lg:col-span-2'>{selectedEndpoint && <RequestTypes endpoint={selectedEndpoint} />}</div>
+
+              {/* Request Types */}
+              <div className='lg:col-span-3'>
                 {selectedEndpoint && (
                   <EndpointForm
                     endpoint={selectedEndpoint}
                     onSubmit={handleSubmit}
+                    onRequestChange={handleRequestChange}
                     loading={loading}
                     apiKey={apiKey}
                     countryCode={countryCode}
                   />
                 )}
               </div>
-
-              {/* Request Types */}
-              <div>
-                <RequestTypesDisplay endpoint={selectedEndpoint} />
-              </div>
             </div>
           </div>
 
           {/* Response */}
           <div className='lg:col-span-4'>
-            <ResponseDisplay response={response} />
+            <ResponseDisplay
+              response={response}
+              requestPreview={requestPreview}
+              responseWithURL={selectedEndpoint?.responseWithURL}
+            />
           </div>
         </div>
       </div>
