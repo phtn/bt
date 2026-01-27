@@ -1,35 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
+import { addWebhook } from '../../../../webhooks-meld/store'
+import type { MeldWebhookEvent } from '../../../../webhooks-meld/store'
 
-// Meld webhook event types
-type MeldEventType =
-  | 'TRANSACTION_CRYPTO_PENDING'
-  | 'TRANSACTION_CRYPTO_TRANSFERRING'
-  | 'TRANSACTION_CRYPTO_COMPLETE'
-  | 'TRANSACTION_CRYPTO_FAILED'
-  | 'WEBHOOK_TEST'
-
-interface MeldWebhookPayload {
-  requestId?: string
-  accountId: string
-  paymentTransactionId?: string
-  customerId?: string
-  externalCustomerId?: string
-  externalSessionId?: string
-  paymentTransactionStatus?: string
-  transactionType?: string
-  sessionId?: string
-}
-
-interface MeldWebhookEvent {
-  eventType: MeldEventType
-  eventId: string
-  timestamp: string
-  accountId: string
-  profileId: string | null
-  version: string
-  payload: MeldWebhookPayload
-}
+// Re-export types from store for backward compatibility
+export type { MeldWebhookEvent, MeldEventType } from '../../../../webhooks-meld/store'
 
 /**
  * Verify Meld webhook signature
@@ -116,8 +91,13 @@ export async function POST(request: NextRequest) {
         eventId: bodyJson.eventId,
         eventType: bodyJson.eventType
       })
+      // Store invalid webhook for debugging
+      addWebhook(bodyJson, false)
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
     }
+
+    // Store the webhook event
+    addWebhook(bodyJson, true)
 
     // Log the webhook event
     console.log('Meld Webhook Received:', {

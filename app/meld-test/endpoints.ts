@@ -380,7 +380,7 @@ export const meldEndpoints: EndpointConfig[] = [
     id: 'transaction',
     name: 'Get Transaction',
     method: 'GET',
-    path: '/v1/transactions/{transactionId}',
+    path: '/payments/transactions/{transactionId}',
     description: 'Get details of a specific transaction',
     params: [
       {

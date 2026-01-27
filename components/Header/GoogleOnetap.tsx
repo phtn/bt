@@ -9,8 +9,8 @@ import {
   signOut,
   type User
 } from 'firebase/auth'
-import Image from 'next/image'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { UserPopover } from '@/components/ui/user-popover'
 
 declare global {
   interface Window {
@@ -339,30 +339,12 @@ export const GoogleOneTap = () => {
       }
     }
 
-    const firstName = user.displayName?.split(' ').shift() || user.email?.split('@')[0] || 'User'
-    const userPhoto = user.photoURL
-
     return (
-      <div className='flex items-center h-8 gap-3'>
-        {userPhoto && (
-          <Image
-            src={userPhoto}
-            width={32}
-            height={32}
-            alt={user.displayName || 'User'}
-            className='w-8 h-8 aspect-square rounded-full'
-            referrerPolicy='no-referrer'
-          />
-        )}
-        <span className='text-slate-900 dark:text-white text-sm font-medium hidden sm:inline'>{firstName}</span>
-        <button
-          onClick={handleSignOut}
-          className='text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors'
-          type='button'
-          aria-label='Sign out'>
-          Sign out
-        </button>
-      </div>
+      <UserPopover
+        displayName={user.displayName}
+        photoUrl={user.photoURL}
+        signOut={handleSignOut}
+      />
     )
   }
 
