@@ -29,14 +29,22 @@ declare global {
         }
       }
     }
+    toggleGoogleOneTap?: (enabled: boolean) => void
   }
 }
+
+const ONE_TAP_STORAGE_KEY = 'google_one_tap_enabled'
 
 export const GoogleOneTap = () => {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [scriptLoaded, setScriptLoaded] = useState(false)
   const [showFallbackButton, setShowFallbackButton] = useState(false)
+  const [isOneTapEnabled, setIsOneTapEnabled] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true
+    const stored = localStorage.getItem(ONE_TAP_STORAGE_KEY)
+    return stored === null ? true : stored === 'true'
+  })
   const oneTapInitializedRef = useRef(false)
   const promptAttemptedRef = useRef(false)
 
@@ -81,9 +89,38 @@ export const GoogleOneTap = () => {
     document.head.appendChild(script)
   }, [scriptLoaded])
 
+  // Toggle One-Tap enabled state
+  const toggleOneTap = useCallback((enabled: boolean) => {
+    setIsOneTapEnabled(enabled)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(ONE_TAP_STORAGE_KEY, String(enabled))
+    }
+    
+    // If disabling and One-Tap is already initialized, disable it
+    if (!enabled && oneTapInitializedRef.current && window.google?.accounts?.id) {
+      try {
+        window.google.accounts.id.disableAutoSelect()
+        oneTapInitializedRef.current = false
+        console.log('Google One-Tap disabled')
+      } catch (error) {
+        console.error('Error disabling One-Tap:', error)
+      }
+    }
+  }, [])
+
+  // Expose toggle function to window for easy access
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as { toggleGoogleOneTap?: (enabled: boolean) => void }).toggleGoogleOneTap = toggleOneTap
+      return () => {
+        delete (window as { toggleGoogleOneTap?: (enabled: boolean) => void }).toggleGoogleOneTap
+      }
+    }
+  }, [toggleOneTap])
+
   // Initialize and show Google One Tap
   const initializeOneTap = useCallback(() => {
-    if (typeof window === 'undefined' || !window.google?.accounts?.id || oneTapInitializedRef.current || user) {
+    if (typeof window === 'undefined' || !window.google?.accounts?.id || oneTapInitializedRef.current || user || !isOneTapEnabled) {
       return
     }
 
@@ -229,11 +266,11 @@ export const GoogleOneTap = () => {
       // On production, use FedCM
       tryInitialize(true)
     }
-  }, [user, showFallbackButton])
+  }, [user, showFallbackButton, isOneTapEnabled])
 
   // Initialize One Tap when script is loaded and user is not authenticated
   useEffect(() => {
-    if (scriptLoaded && !user && !isLoading && !oneTapInitializedRef.current) {
+    if (scriptLoaded && !user && !isLoading && !oneTapInitializedRef.current && isOneTapEnabled) {
       // Small delay to ensure DOM is ready and Google script is fully loaded
       const timer = setTimeout(() => {
         if (window.google?.accounts?.id) {
@@ -241,7 +278,8 @@ export const GoogleOneTap = () => {
             hostname: window.location.hostname,
             protocol: window.location.protocol,
             hasGoogleScript: !!window.google,
-            hasAccountsId: !!window.google?.accounts?.id
+            hasAccountsId: !!window.google?.accounts?.id,
+            isOneTapEnabled
           })
           initializeOneTap()
         } else {
@@ -257,7 +295,7 @@ export const GoogleOneTap = () => {
         clearTimeout(timer)
       }
     }
-  }, [scriptLoaded, user, isLoading, initializeOneTap])
+  }, [scriptLoaded, user, isLoading, initializeOneTap, isOneTapEnabled])
 
   // Fallback sign-in handler using popup
   const handleSignInWithPopup = useCallback(async () => {
@@ -349,5 +387,22 @@ export const GoogleOneTap = () => {
   }
 
   // Don't render anything visible - One Tap appears as an overlay
+  // But show a small indicator in development mode
+  if (process.env.NODE_ENV === 'development' && !user) {
+    return (
+      <div className="flex items-center gap-2 text-xs text-slate-500">
+        <span>One-Tap: {isOneTapEnabled ? 'ON' : 'OFF'}</span>
+        <button
+          onClick={() => toggleOneTap(!isOneTapEnabled)}
+          className="px-2 py-1 text-xs border rounded hover:bg-slate-100 dark:hover:bg-slate-800"
+          type="button"
+          title="Toggle Google One-Tap (also available via window.toggleGoogleOneTap(true/false))"
+        >
+          {isOneTapEnabled ? 'Disable' : 'Enable'}
+        </button>
+      </div>
+    )
+  }
+
   return null
 }
